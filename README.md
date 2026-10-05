@@ -39,7 +39,7 @@ A Windows PowerShell [status line](https://code.claude.com/docs/en/statusline) f
 
 - **Nothing shows up:** check that `settings.json` is valid JSON and that you accepted the trust prompt for the project folder. Run `claude --debug` to see script errors.
 - **Only the model name shows:** the script works. Limit data needs a Pro or Max plan and at least one response in the session.
-- **Boxes or `?` instead of bars:** your terminal font lacks the block characters. Windows Terminal handles them.
+- **Bars show up without color:** the bars use 256-color background codes, so your terminal needs ANSI color support. Windows Terminal has it.
 - **Test the script by hand:**
 
   ```powershell

@@ -1,33 +1,33 @@
 # Claude Code status line (Windows PowerShell)
 # Line 1: model, folder, context window usage
 # Line 2: 5-hour and weekly plan limits with reset times
+# Bars are drawn with background-colored spaces, so they look solid in any font.
 
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $j = $input | Out-String | ConvertFrom-Json
 
-$esc    = [char]27
-$reset  = "${esc}[0m"
-$dim    = "${esc}[2m"
-$cyan   = "${esc}[36m"
-$green  = "${esc}[32m"
-$yellow = "${esc}[33m"
-$red    = "${esc}[31m"
+$esc      = [char]27
+$reset    = "${esc}[0m"
+$cyan     = "${esc}[38;5;80m"
+$dim      = "${esc}[38;5;245m"
+$bgGreen  = "${esc}[48;5;71m"
+$bgYellow = "${esc}[48;5;178m"
+$bgRed    = "${esc}[48;5;167m"
+$bgEmpty  = "${esc}[48;5;238m"
 
-# Bar characters (built from char codes so this file stays plain ASCII)
-$full  = [string][char]0x2588
-$empty = [string][char]0x2591
-
-function Get-Tint($pct) {
-    if ($pct -ge 90) { return $red }
-    if ($pct -ge 70) { return $yellow }
-    return $green
+function Get-FillBg($pct) {
+    if ($pct -ge 90) { return $bgRed }
+    if ($pct -ge 70) { return $bgYellow }
+    return $bgGreen
 }
 
 function Get-Bar($pct, $width = 10) {
     $p = [math]::Max(0, [math]::Min(100, [double]$pct))
     $filled = [int][math]::Floor($p * $width / 100)
-    $tint = Get-Tint $p
-    return $tint + ($full * $filled) + $dim + ($empty * ($width - $filled)) + $reset
+    $bar = ""
+    if ($filled -gt 0) { $bar += (Get-FillBg $p) + (" " * $filled) }
+    if ($filled -lt $width) { $bar += $bgEmpty + (" " * ($width - $filled)) }
+    return $bar + $reset
 }
 
 function Get-Left($ts) {
@@ -57,7 +57,7 @@ if ($j.workspace.current_dir) {
 
 $ctx = $j.context_window.used_percentage
 if ($null -ne $ctx) {
-    $line1 += "  |  Context " + (Get-Bar $ctx) + " " + [math]::Round($ctx) + "%"
+    $line1 += "  ${dim}|${reset}  Context " + (Get-Bar $ctx) + " " + [math]::Round($ctx) + "%"
 }
 
 Write-Host $line1
@@ -69,7 +69,7 @@ $h5 = $j.rate_limits.five_hour
 if ($h5 -and $null -ne $h5.used_percentage) {
     $t = "5-hour limit " + (Get-Bar $h5.used_percentage) + " " + [math]::Round($h5.used_percentage) + "%"
     if ($h5.resets_at) {
-        $t += "  resets in " + (Get-Left $h5.resets_at) + " (" + (Get-At $h5.resets_at "HH:mm") + ")"
+        $t += "  ${dim}resets in " + (Get-Left $h5.resets_at) + " (" + (Get-At $h5.resets_at "HH:mm") + ")${reset}"
     }
     $parts += $t
 }
@@ -78,11 +78,11 @@ $wk = $j.rate_limits.seven_day
 if ($wk -and $null -ne $wk.used_percentage) {
     $t = "Weekly limit " + (Get-Bar $wk.used_percentage) + " " + [math]::Round($wk.used_percentage) + "%"
     if ($wk.resets_at) {
-        $t += "  resets in " + (Get-Left $wk.resets_at) + " (" + (Get-At $wk.resets_at "ddd dd MMM, HH:mm") + ")"
+        $t += "  ${dim}resets in " + (Get-Left $wk.resets_at) + " (" + (Get-At $wk.resets_at "ddd dd MMM, HH:mm") + ")${reset}"
     }
     $parts += $t
 }
 
 if ($parts.Count -gt 0) {
-    Write-Host ($parts -join "  |  ")
+    Write-Host ($parts -join "  ${dim}|${reset}  ")
 }
