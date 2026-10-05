@@ -2,10 +2,7 @@
 
 A Windows PowerShell [status line](https://code.claude.com/docs/en/statusline) for Claude Code that shows your plan limits and context usage at a glance.
 
-```
-[Opus] my-project  |  Context ███░░░░░░░ 28%
-5-hour limit ██░░░░░░░░ 24%  resets in 2h 15m (15:40)  |  Weekly limit ████░░░░░░ 41%  resets in 2d 5h (Thu 08 Oct, 01:39)
-```
+![Status line preview](assets/preview.svg)
 
 ## Features
 
