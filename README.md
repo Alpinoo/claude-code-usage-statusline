@@ -1,6 +1,6 @@
 # claude-code-usage-statusline
 
-A Windows PowerShell [status line](https://code.claude.com/docs/en/statusline) for Claude Code that shows your plan limits and context usage at a glance.
+A cross-platform (Windows PowerShell and macOS/Linux bash) [status line](https://code.claude.com/docs/en/statusline) for Claude Code that shows your plan limits and context usage at a glance.
 
 ![Status line preview](assets/preview.svg)
 
@@ -9,15 +9,16 @@ A Windows PowerShell [status line](https://code.claude.com/docs/en/statusline) f
 - **5-hour and weekly limits** with usage percentage, time left, and the local reset time
 - **Context window bar** showing how full the current chat is (resets after `/clear`)
 - **Color thresholds**: green below 70%, yellow from 70%, red from 90%
-- **No dependencies**: plain PowerShell, no `jq` and no Git Bash
+- **Windows**: plain PowerShell, no dependencies
+- **macOS / Linux**: bash script, only needs `jq` (`brew install jq`)
 
 ## Requirements
 
-- Windows with PowerShell (the built-in `powershell` works)
+- Windows with PowerShell (the built-in `powershell` works), **or** macOS/Linux with `bash` and `jq`
 - Claude Code
 - A claude.ai **Pro or Max** plan for the limit lines. Without one, only the model, folder, and context bar appear.
 
-## Install
+## Install (Windows)
 
 1. Save `statusline.ps1` to `C:\Users\<you>\.claude\statusline.ps1`.
 2. Add this to `C:\Users\<you>\.claude\settings.json` (merge it into the existing object if the file already has settings):
@@ -35,6 +36,36 @@ A Windows PowerShell [status line](https://code.claude.com/docs/en/statusline) f
 
 3. Restart Claude Code and send a message. The limit data arrives with the first response of a session.
 
+## Install (macOS / Linux)
+
+1. Install `jq` if you don't have it: `brew install jq`
+2. Copy the script and make it executable:
+
+   ```bash
+   mkdir -p ~/.claude
+   cp statusline.sh ~/.claude/statusline.sh
+   chmod +x ~/.claude/statusline.sh
+   ```
+
+3. Add this to `~/.claude/settings.json` (merge it into the existing object):
+
+   ```json
+   {
+     "statusLine": {
+       "type": "command",
+       "command": "~/.claude/statusline.sh"
+     }
+   }
+   ```
+
+4. Restart Claude Code and send a message.
+
+Test by hand:
+
+```bash
+echo '{"model":{"display_name":"Opus"},"rate_limits":{"five_hour":{"used_percentage":23.5,"resets_at":1790000000}}}' | ./statusline.sh
+```
+
 ## Troubleshooting
 
 - **Nothing shows up:** check that `settings.json` is valid JSON and that you accepted the trust prompt for the project folder. Run `claude --debug` to see script errors.
@@ -48,7 +79,7 @@ A Windows PowerShell [status line](https://code.claude.com/docs/en/statusline) f
 
 ## How it works
 
-Claude Code pipes JSON about the session to the status line command on stdin. This script reads `context_window.used_percentage`, `rate_limits.five_hour`, and `rate_limits.seven_day` from that JSON and prints two lines. See the [official status line docs](https://code.claude.com/docs/en/statusline) for every available field.
+`statusline.ps1` (Windows) and `statusline.sh` (macOS/Linux) behave identically. Claude Code pipes JSON about the session to the status line command on stdin. This script reads `context_window.used_percentage`, `rate_limits.five_hour`, and `rate_limits.seven_day` from that JSON and prints two lines. See the [official status line docs](https://code.claude.com/docs/en/statusline) for every available field.
 
 ## License
 
